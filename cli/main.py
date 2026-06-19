@@ -21,7 +21,7 @@ from train.model import StockClassifier
 import torch
 import pandas as pd
 
-LOCAL_CONFIG = PROJECT_ROOT / 'local.yaml'
+LOCAL_CONFIG = PROJECT_ROOT / 'config' / 'local.yaml'
 
 
 def load_local_config() -> dict:
@@ -105,7 +105,7 @@ def predict_stock(
     if not no_cache:
         cached = load_cache(cache_key)
         if cached is not None:
-            print(c('✅ Cached data', YELLOW))
+            print(c('Using cached data', YELLOW))
             price_data = cached
         else:
             price_data = fetch_price_data(ticker, period, interval)
@@ -148,7 +148,7 @@ def predict_stock(
                 f"Ticker: {ticker}\n"
                 f"Prediction: {action} ({conf*100:.1f}%)\n"
                 f"Indicators:\n{features_str}\n\n"
-                "3 reasons + 3 risks. Max 150 words."
+                "3 reasons + 3 risks. Max 150 words. Do not say how many words at end of response."
             )
             resp = client.chat.completions.create(
                 model='openai/gpt-oss-20b',
@@ -176,7 +176,7 @@ def main() -> None:
     RESET = '\x1b[0m'
 
     config = load_local_config()
-    groq_api_key = config.get('groq', {}).get('api_key') or os.getenv('GROQ_API_KEY')
+    groq_api_key = config.get('groq_api_key') or os.getenv('GROQ_API_KEY')
 
     if groq_api_key and GROQ_AVAILABLE:
         status = 'Groq: enabled'

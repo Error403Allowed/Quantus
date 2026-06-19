@@ -188,4 +188,4 @@ $ python cli/main.py
 
 ## 📝 License
 
-MIT License - See [LICENSE](LICENSE)
+Apache 2.0 License - See [LICENSE](LICENSE)
