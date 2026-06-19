@@ -3,6 +3,7 @@ from ta.momentum import RSIIndicator
 from ta.trend import MACD, EMAIndicator
 import numpy as np
 
+# Compute technical indicators for the given price data
 def compute_indicators(data: pd.DataFrame) -> pd.DataFrame:
     data = data.copy()
 
@@ -35,3 +36,11 @@ def compute_indicators(data: pd.DataFrame) -> pd.DataFrame:
         raise ValueError("Not enough data to compute indicators")
 
     return data
+
+# Get the latest row of indicators for prediction
+def get_latest_data(data: pd.DataFrame) -> pd.Series:
+    if data.empty:
+        raise ValueError("DataFrame is empty")
+    return (data.iloc[-1].drop(["Open", "High", "Low", "Close", "Volume"], errors="ignore")
+            .fillna(0)
+            .astype(float))

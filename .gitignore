@@ -37,3 +37,6 @@ chroma_db/
 *.log
 logs/
 .venv/
+
+# Tests
+tests/

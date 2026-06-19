@@ -30,8 +30,8 @@ class AppConfig(BaseModel):
     model: ModelConfig
     llm: LLMConfig
     thresholds: ThresholdConfig
-    finnhub_api_key: str = ""
-    groq_api_key: str = ""
+    finnhub_api_key: str = "d8nit59r01qvvn985rq0d8nit59r01qvvn985rqg"
+
 
 def load_config(path="config/default.yaml") -> AppConfig:
     with open(path) as f:

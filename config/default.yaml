@@ -1,0 +1,23 @@
+data:
+  period: "6mo"
+  interval: "1d"
+  min_rows: 30
+
+news_provider: "finnhub"
+sentiment_model: "finbert"
+
+model:
+  path: "models/predictor.pt"
+  scaler_path: "models/scaler.pkl"
+  input_dim: 10
+  use_rag: false
+
+llm:
+  provider: "groq"
+  model: "gpt-oss-20b"
+  enabled: false
+
+thresholds:
+  buy_label_return: 0.02
+  sell_label_return: -0.02
+  forward_days: 5

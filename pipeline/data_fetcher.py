@@ -3,6 +3,7 @@ import finnhub
 from datetime import datetime, timedelta, timezone
 import pandas as pd
 
+# Fetch historical price data for a given ticker
 def fetch_price_data(ticker: str, period="6mo", interval="1d"):
     data = yf.download(ticker, period=period, interval=interval, auto_adjust=True, progress=False)
 
@@ -20,6 +21,7 @@ def fetch_price_data(ticker: str, period="6mo", interval="1d"):
 
     return data # Only return data if validation passes
 
+# Fetch news headlines for a given ticker using Finnhub API
 def fetch_news_data(ticker: str, api_key: str, days_back: int = 7):
     client = finnhub.Client(api_key=api_key)
     end_date = datetime.now(timezone.utc).date()
