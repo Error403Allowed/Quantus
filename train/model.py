@@ -113,3 +113,28 @@ print(f"Test Accuracy: {test_accuracy:.2f}%")
 torch.save(model.state_dict(), 'models/stock_classifier.pt')
 print('Model saved to models/stock_classifier.pt')
 
+# 6. Temperature scaling: find T that minimizes NLL on the test set
+logits_list, labels_list = [], []
+with torch.no_grad():
+    for batch_X, batch_y in test_loader:
+        logits_list.append(model(batch_X))
+        labels_list.append(batch_y)
+val_logits = torch.cat(logits_list)
+val_labels = torch.cat(labels_list)
+
+temp_param = nn.Parameter(torch.tensor(1.0))
+temp_opt = optim.LBFGS([temp_param], lr=0.01, max_iter=50)
+
+
+def temp_nll() -> torch.Tensor:
+    temp_opt.zero_grad()
+    loss = nn.functional.cross_entropy(val_logits / temp_param, val_labels)
+    loss.backward(retain_graph=True)
+    return loss
+
+
+temp_opt.step(temp_nll)
+temp_value = float(temp_param.item())
+torch.save({'temperature': temp_value}, 'models/temperature.pt')
+print(f'Temperature (T): {temp_value:.4f}')
+

@@ -123,13 +123,18 @@ def predict_stock(
     model.load_state_dict(torch.load(model_path, weights_only=True, map_location='cpu'))
     model.eval()
 
+    temp = 1.0
+    temp_path = PROJECT_ROOT / 'models' / 'temperature.pt'
+    if temp_path.exists():
+        temp = float(torch.load(temp_path, weights_only=True, map_location='cpu')['temperature'])
+
     input_array = features.values.copy()
     input_tensor = torch.FloatTensor(input_array).unsqueeze(0)
 
     with torch.no_grad():
         out = model(input_tensor)
         pred = int(torch.argmax(out, dim=1)[0])
-        conf = torch.softmax(out, dim=1)[0][pred].item()
+        conf = torch.softmax(out / temp, dim=1)[0][pred].item()
 
     actions = {0: ('SELL', '📉', RED), 1: ('HOLD', '➡️', YELLOW), 2: ('BUY', '📈', GREEN)}
     action, emoji, color = actions[pred]
