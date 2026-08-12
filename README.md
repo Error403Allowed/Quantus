@@ -119,8 +119,8 @@ python cli/main.py
 
 ## 🎯 Performance
 
-- **Train Accuracy**: ~73-81%
-- **Test Accuracy**: ~71-73%
+- **Train Accuracy**: ~79-83%
+- **Test Accuracy**: ~73-77%
 - **Confidence**: 50-90% (varies by stock)
 
 ---
