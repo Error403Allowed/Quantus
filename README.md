@@ -3,18 +3,23 @@
 ## 🚀 Quick Start
 
 ```bash
-# 1. Train model (first time)
-cd /Users/shrravan/Documents/Quantus
-python train/model.py
+# 1. Install dependencies (first time)
+pip install torch yfinance finnhub-python pandas ta numpy scikit-learn click groq pyyaml pydantic
 
-# 2. Run CLI
+# 2. Train model (first time)
+PYTHONPATH=. python train/model.py
+
+# 3. Run CLI
 python cli/main.py
 
-# 3. Use it
+# 4. Use it
 📝 AAPL                       # predict stock
 📝 TSLA                       # predict another
 📝 quit                       # exit
 ```
+
+> **Note**: `train/model.py` imports package modules, so run it with `PYTHONPATH=.`
+> from the project root. On some systems use `python3` instead of `python`.
 
 ---
 
@@ -30,6 +35,7 @@ Groq explanations are **optional**. The CLI works without it, just no AI analysi
    echo 'export GROQ_API_KEY=your_key_here' >> ~/.zshrc
    source ~/.zshrc
    ```
+   (or add `groq_api_key: your_key_here` to `config/local.yaml`)
 3. Run CLI — Groq auto-works ✅
 
 **Without Groq:** CLI still predicts stocks (BUY/HOLD/SELL), just no explanation.
@@ -41,7 +47,7 @@ Groq explanations are **optional**. The CLI works without it, just no AI analysi
 - **Neural Network**: MLP (11→64→32→3) for 3-class classification (BUY/HOLD/SELL)
 - **Technical Indicators**: RSI, MACD, EMA (20/50/200), volatility, momentum
 - **Groq AI**: 3 reasons + 3 risks explanation (neutral analysis) [optional]
-- **Caching**: 24h data cache (skip API fetch)
+- **Caching**: OHLCV data cached to `.cache/` (never expires; use `no-cache TICKER` to force a fresh fetch)
 - **Interactive CLI**: Type multiple tickers without restarting
 
 ---
@@ -53,16 +59,16 @@ Quantus/
 ├── cli/
 │   └── main.py              # Interactive CLI (entry point)
 ├── pipeline/
-│   ├── data_fetcher.py      # yfinance + Finnhub API
+│   ├── data_fetcher.py      # yfinance data fetching
 │   ├── indicators.py        # Technical indicator computation
-│   └── dataset.py           # Dataset preparation
 ├── train/
-│   └── model.py             # MLP training + evaluation
+│   ├── model.py             # MLP training + evaluation
+│   └── dataset.py           # Dataset preparation
 ├── models/
 │   └── stock_classifier.pt  # Trained model (after training)
 ├── config/                  # Configuration files
-├── tests/                   # Unit tests
-├── .cache/                  # Auto-generated cache (24h)
+├── .cache/                  # Auto-generated data cache
+└── main.py                  # Empty placeholder
 ```
 
 ---
@@ -86,15 +92,13 @@ Input (11 features) → Hidden1 (64) → Hidden2 (32) → Output (3)
 
 ## 📖 CLI Commands
 
-| Command | Description |
-|---------|-------------|
-| `AAPL` | Predict stock |
-| `period=1y` | Set data period (default: 5y) |
-| `interval=1h` | Set data interval (default: 1d) |
-| `groq=KEY` | Set Groq API key |
-| `no-cache` | Fetch fresh data (skip cache) |
-| `quit` | Exit CLI |
-| `help` | Show commands |
+| Command          | Description |
+|------------------|-------------|
+| `AAPL`           | Predict stock |
+| `period=1y`      | Set data period (default: 5y) |
+| `interval=1h`    | Set data interval (default: 1d) |
+| `no-cache AAPL`  | Predict with a fresh data fetch (skip cache) |
+| `quit`           | Exit CLI |
 
 ---
 
@@ -102,10 +106,10 @@ Input (11 features) → Hidden1 (64) → Hidden2 (32) → Output (3)
 
 ```bash
 # Install dependencies
-pip install torch yfinance finnhub-python pandas ta numpy click groq
+pip install torch yfinance finnhub-python pandas ta numpy scikit-learn click groq pyyaml pydantic
 
 # Train model
-python train/model.py
+PYTHONPATH=. python train/model.py
 
 # Run CLI
 python cli/main.py
@@ -115,7 +119,7 @@ python cli/main.py
 
 ## 🎯 Performance
 
-- **Train Accuracy**: ~73-80%
+- **Train Accuracy**: ~73-81%
 - **Test Accuracy**: ~71-73%
 - **Confidence**: 50-90% (varies by stock)
 
@@ -136,7 +140,7 @@ Get concise explanations with **3 reasons** + **3 risks**:
   ⚠️ Market sentiment uncertain
 ```
 
-**Setup**: `groq=your_api_key_here` in CLI
+**Setup**: Set `GROQ_API_KEY` env var (or `config/local.yaml`), then run the CLI.
 
 ---
 
@@ -145,31 +149,20 @@ Get concise explanations with **3 reasons** + **3 risks**:
 ```bash
 $ python cli/main.py
 
-  Welcome to Quantus, a quantative trading machine learning program using
-  networks built in pytorch that uses neural networks to predict stock outcomes.
+  Quantus | MLP | Groq: disabled
 
-  Type a ticker (or "quit" to exit)
-  Commands: ticker, period=X, interval=X, groq=KEY, quit
-
-  📝 groq=abc123xyz
-  ✅ Groq API: set
-
-  📝 AAPL
+  Enter ticker: AAPL
   🚀 AAPL | 5y | 1d
   ✅ 1255 OHLCV rows
 
   🎯 BUY 📈
-     Neural Network Confidence: 74.2%
+     Neural Network Confidence: 88.7%
      Model: MLP (11→64→32→3)
-
-  🧠 Groq AI Analysis...
-    RSI momentum bullish, MACD crossover positive, EMA trend up
-    Risks: Volatility high, Volume low, Market uncertain
 
   ✅ AAPL → BUY 📈
 
-  📝 quit
-  ✅ Bye! 👋
+  Enter ticker: quit
+  Bye! 👋
 ```
 
 ---
@@ -180,7 +173,7 @@ $ python cli/main.py
 - **PyTorch** (Neural Network)
 - **yfinance** (Price data)
 - **Finnhub** (News sentiment)
-- **TA-Lib** (Technical indicators)
+- **ta** (Technical indicators)
 - **Groq** (AI explanations)
 - **Click** (CLI)
 
