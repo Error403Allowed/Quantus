@@ -29,7 +29,7 @@ Groq explanations are **optional**. The CLI works without it, just no AI analysi
 
 **To enable Groq AI:**
 
-1. Get free API key: [https://groq.com](https://groq.com)
+1. Get free API key: (https://groq.com)
 2. Set environment variable:
    ```bash
    echo 'export GROQ_API_KEY=your_key_here' >> ~/.zshrc
@@ -181,4 +181,4 @@ $ python cli/main.py
 
 ## 📝 License
 
-Apache 2.0 License - See [LICENSE](LICENSE)
+Apache 2.0 License - See [LICENSE]
