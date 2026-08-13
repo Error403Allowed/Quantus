@@ -35,9 +35,13 @@ y = processed["Target"]
 X_np = X.values
 y_np = (y + 1).astype(np.int32)  # fixed: -1→0, 0→1, 1→2
 
-# Train/test split
-X_train, X_test, y_train, y_test = train_test_split(
+# Train/test/val split
+X_temp, X_test, y_temp, y_test = train_test_split(
     X_np, y_np, test_size=0.2, random_state=42, stratify=y_np
+)
+
+X_train, X_val, y_train, y_val = train_test_split(
+    X_temp, y_temp, test_size=0.25, random_state=42, stratify=y_temp
 )
 
 # Convert to tensors
@@ -45,6 +49,8 @@ X_train_t = torch.FloatTensor(X_train)
 y_train_t = torch.LongTensor(y_train.values.copy())
 X_test_t = torch.FloatTensor(X_test)
 y_test_t = torch.LongTensor(y_test.values.copy())
+X_val_t = torch.FloatTensor(X_val)
+y_val_t = torch.LongTensor(y_val.values.copy())
 
 # Create DataLoaders with TensorDataset
 train_dataset = TensorDataset(X_train_t, y_train_t)
@@ -52,6 +58,9 @@ test_dataset = TensorDataset(X_test_t, y_test_t)
 
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+
+val_dataset = TensorDataset(X_val_t, y_val_t)
+val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
 # 3. Create model, loss, optimizer
 model = StockClassifier()
