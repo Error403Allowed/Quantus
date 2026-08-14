@@ -142,7 +142,7 @@ def predict_stock(
     print()
     print(c(BOLD + f'🎯 {action} {emoji}', color) + BOLD)
     print(c(f'   Neural Network Confidence: {conf*100:.1f}%', WHITE))
-    print(c(f'   Model: MLP (11→64→32→3)', CYAN))
+    print(c(f'   Model: MLP (11->64->32->3)', CYAN))
 
     if groq_api_key and GROQ_AVAILABLE:
         print(c('\nQuantus AI Analysis...', CYAN))
@@ -168,7 +168,7 @@ def predict_stock(
     elif groq_api_key and not GROQ_AVAILABLE:
         print(c(f'  ⚠️  Groq import failed: {GROQ_IMPORT_ERROR}', YELLOW))
 
-    print(c(f'\n✅ {ticker} → {action} {emoji}', GREEN) + '\n')
+    print(c(f'\n✅ {ticker} -> {action} {emoji}', GREEN) + '\n')
 
 
 def main() -> None:

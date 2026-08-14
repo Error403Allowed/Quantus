@@ -44,7 +44,7 @@ Groq explanations are **optional**. The CLI works without it, just no AI analysi
 
 ## 📊 Features
 
-- **Neural Network**: MLP (11→64→32→3) for 3-class classification (BUY/HOLD/SELL)
+- **Neural Network**: MLP (11->64->32->3) for 3-class classification (BUY/HOLD/SELL)
 - **Technical Indicators**: RSI, MACD, EMA (20/50/200), volatility, momentum
 - **Groq AI**: 3 reasons + 3 risks explanation (neutral analysis) [optional]
 - **Caching**: OHLCV data cached to `.cache/` (never expires; use `no-cache TICKER` to force a fresh fetch)
@@ -76,7 +76,7 @@ Quantus/
 ## 🧮 Model Architecture
 
 ```
-Input (11 features) → Hidden1 (64) → Hidden2 (32) → Output (3)
+Input (11 features) -> Hidden1 (64) -> Hidden2 (32) -> Output (3)
                     ↓           ↓
                   Dropout       Dropout
 ```
@@ -84,9 +84,9 @@ Input (11 features) → Hidden1 (64) → Hidden2 (32) → Output (3)
 **Features**: RSI, MACD, EMA_20/50/200, Price_Change, Vol_Change, Volatility, MA_20/50/200
 
 **Output**: 
-- `0` → SELL 📉
-- `1` → HOLD ➡️
-- `2` → BUY 📈
+- `0` -> SELL 📉
+- `1` -> HOLD ➡️
+- `2` -> BUY 📈
 
 ---
 
@@ -157,9 +157,9 @@ $ python cli/main.py
 
   🎯 BUY 📈
      Neural Network Confidence: 88.7%
-     Model: MLP (11→64→32→3)
+     Model: MLP (11->64->32->3)
 
-  ✅ AAPL → BUY 📈
+  ✅ AAPL -> BUY 📈
 
   Enter ticker: quit
   Bye! 👋

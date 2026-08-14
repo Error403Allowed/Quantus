@@ -19,9 +19,9 @@ class StockClassifier(nn.Module):
         self.output = nn.Linear(hidden2, output_dim)
     
     def forward(self, x):
-        x = self.relu(self.fc1(x))   # 11 → 64
-        x = self.relu(self.fc2(x))   # 64 → 32
-        x = self.output(x)           # 32 → 3
+        x = self.relu(self.fc1(x))   # 11 -> 64
+        x = self.relu(self.fc2(x))   # 64 -> 32
+        x = self.output(x)           # 32 -> 3
         return x
 
 # 2. Prepare data
@@ -31,9 +31,9 @@ processed = prepare_dataset(price_data)
 X = processed.drop(columns=["Open", "High", "Low", "Close", "Volume", "Future_Return", "Target"], errors="ignore")
 y = processed["Target"]
 
-# Convert to numpy and -1,0,1 → 0,1,2 for PyTorch
-X_np = X.values
-y_np = (y + 1).astype(np.int32)  # fixed: -1→0, 0→1, 1→2
+# Convert to numpy and -1,0,1 -> 0,1,2 for PyTorch
+X_np = X.values.astype(np.float32)
+y_np = (y + 1).astype(np.int64) 
 
 # Train/test/val split
 X_temp, X_test, y_temp, y_test = train_test_split(
@@ -44,13 +44,14 @@ X_train, X_val, y_train, y_val = train_test_split(
     X_temp, y_temp, test_size=0.25, random_state=42, stratify=y_temp
 )
 
-# Convert to tensors
-X_train_t = torch.FloatTensor(X_train)
-y_train_t = torch.LongTensor(y_train.values.copy())
-X_test_t = torch.FloatTensor(X_test)
-y_test_t = torch.LongTensor(y_test.values.copy())
-X_val_t = torch.FloatTensor(X_val)
-y_val_t = torch.LongTensor(y_val.values.copy())
+# Convert to tensors directly from NumPy arrays
+X_train_t = torch.from_numpy(X_train).float()
+y_train_t = torch.from_numpy(y_train).long()
+X_test_t = torch.from_numpy(X_test).float()
+y_test_t = torch.from_numpy(y_test).long()
+X_val_t = torch.from_numpy(X_val).float()
+y_val_t = torch.from_numpy(y_val).long()
+
 
 # Create DataLoaders with TensorDataset
 train_dataset = TensorDataset(X_train_t, y_train_t)
@@ -125,7 +126,7 @@ print('Model saved to models/stock_classifier.pt')
 # 6. Temperature scaling: find T that minimizes NLL on the test set
 logits_list, labels_list = [], []
 with torch.no_grad():
-    for batch_X, batch_y in test_loader:
+    for batch_X, batch_y in val_loader:
         logits_list.append(model(batch_X))
         labels_list.append(batch_y)
 val_logits = torch.cat(logits_list)
@@ -138,7 +139,7 @@ temp_opt = optim.LBFGS([temp_param], lr=0.01, max_iter=50)
 def temp_nll() -> torch.Tensor:
     temp_opt.zero_grad()
     loss = nn.functional.cross_entropy(val_logits / temp_param, val_labels)
-    loss.backward(retain_graph=True)
+    loss.backward
     return loss
 
 
