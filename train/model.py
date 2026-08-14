@@ -139,7 +139,7 @@ temp_opt = optim.LBFGS([temp_param], lr=0.01, max_iter=50)
 def temp_nll() -> torch.Tensor:
     temp_opt.zero_grad()
     loss = nn.functional.cross_entropy(val_logits / temp_param, val_labels)
-    loss.backward
+    loss.backward()
     return loss
 
 
