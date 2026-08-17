@@ -46,11 +46,11 @@ X_train, X_val, y_train, y_val = train_test_split(
 
 # Convert to tensors directly from NumPy arrays
 X_train_t = torch.from_numpy(X_train).float()
-y_train_t = torch.from_numpy(y_train).long()
+y_train_t = torch.from_numpy(y_train.values).long()
 X_test_t = torch.from_numpy(X_test).float()
-y_test_t = torch.from_numpy(y_test).long()
+y_test_t = torch.from_numpy(y_test.values).long()
 X_val_t = torch.from_numpy(X_val).float()
-y_val_t = torch.from_numpy(y_val).long()
+y_val_t = torch.from_numpy(y_val.values).long()
 
 
 # Create DataLoaders with TensorDataset
@@ -62,6 +62,10 @@ test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 val_dataset = TensorDataset(X_val_t, y_val_t)
 val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+
+best_val_loss = float("inf")
+no_improve_epochs = 0
+patience = 5
 
 # 3. Create model, loss, optimizer
 model = StockClassifier()
@@ -83,6 +87,10 @@ for epoch in range(num_epochs):
     avg_loss = total_loss / len(train_loader)
     if epoch % 25 == 0:
         print(f"Epoch {epoch}, Avg Loss: {avg_loss:.4f}")
+
+    if avg_loss < 0.6: 
+        print("Early stopping as loss is below threshold.")
+        break
 
 # 5. Evaluation
 # model.eval()
