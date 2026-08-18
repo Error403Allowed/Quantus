@@ -69,13 +69,13 @@ def load_cache(key: str) -> Optional[pd.DataFrame]:
         return None
 
 
-def save_cache(key: str, data: pd.DataFrame) -> None:
-    try:
-        cache_file = CACHE_DIR / f"{key}.pkl"
-        with cache_file.open('wb') as f:
-            pickle.dump(data, f)
-    except Exception:
-        pass
+# def save_cache(key: str, data: pd.DataFrame) -> None:
+#     try:
+#         cache_file = CACHE_DIR / f"{key}.pkl"
+#         with cache_file.open('wb') as f:
+#             pickle.dump(data, f)
+#     except Exception:
+#         pass
 
 
 def predict_stock(
@@ -101,18 +101,18 @@ def predict_stock(
 
     print(c(f'\n🚀 {ticker}', CYAN) + c(f' | {period} | {interval}', WHITE))
 
-    cache_key = get_cache_key(ticker, period, interval)
-    if not no_cache:
-        cached = load_cache(cache_key)
-        if cached is not None:
-            print(c('Using cached data', YELLOW))
-            price_data = cached
-        else:
-            price_data = fetch_price_data(ticker, period, interval)
-            save_cache(cache_key, price_data)
-            print(c('✅ Downloaded (saved to cache)', GREEN))
-    else:
-        price_data = fetch_price_data(ticker, period, interval)
+    # cache_key = get_cache_key(ticker, period, interval)
+    # if not no_cache:
+    #     cached = load_cache(cache_key)
+    #     if cached is not None:
+    #         print(c('Using cached data', YELLOW))
+    #         price_data = cached
+    #     else:
+    #         price_data = fetch_price_data(ticker, period, interval)
+    #         save_cache(cache_key, price_data)
+    #         print(c('✅ Downloaded (saved to cache)', GREEN))
+    # else:
+    price_data = fetch_price_data(ticker, period, interval)
 
     print(c(f'✅ {len(price_data)} OHLCV rows', GREEN))
 
