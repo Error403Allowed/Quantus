@@ -47,7 +47,6 @@ Groq explanations are **optional**. The CLI works without it, just no AI analysi
 - **Neural Network**: MLP (11->64->32->3) for 3-class classification (BUY/HOLD/SELL)
 - **Technical Indicators**: RSI, MACD, EMA (20/50/200), volatility, momentum
 - **Groq AI**: 3 reasons + 3 risks explanation (neutral analysis) [optional]
-- **Caching**: OHLCV data cached to `.cache/` (never expires; use `no-cache TICKER` to force a fresh fetch)
 - **Interactive CLI**: Type multiple tickers without restarting
 
 ---
@@ -122,6 +121,8 @@ python cli/main.py
 - **Train Accuracy**: ~79-83%
 - **Test Accuracy**: ~73-77%
 - **Confidence**: 50-90% (varies by stock)
+
+> This is purely an estimate and average of my findings after the model has been trained. 
 
 ---
 
