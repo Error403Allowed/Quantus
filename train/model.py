@@ -92,19 +92,6 @@ for epoch in range(num_epochs):
         print("Early stopping as loss is below threshold.")
         break
 
-# 5. Evaluation
-# model.eval()
-# correct, total = 0, 0
-# with torch.no_grad():
-#     for batch_X, batch_y in test_loader:
-#         outputs = model(batch_X)
-#         _, predicted = torch.max(outputs, 1)
-#         correct += (predicted == batch_y).sum().item()
-#         total += batch_y.size(0)
-
-# accuracy = 100 * correct / total
-# print(f"Test Accuracy: {accuracy:.2f}%")
-
 # Add this before evaluation
 model.eval()
 train_correct, train_total = 0, 0
