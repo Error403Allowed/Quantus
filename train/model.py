@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
+import copy
 
 from train.dataset import prepare_dataset
 from pipeline.data_fetcher import fetch_price_data
@@ -65,7 +66,9 @@ val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
 best_val_loss = float("inf")
 no_improve_epochs = 0
-patience = 5
+patience = 75
+best_state = None
+num_epochs = 1000
 
 # 3. Create model, loss, optimizer
 model = StockClassifier()
@@ -73,26 +76,40 @@ criterion = nn.CrossEntropyLoss()  # for 3-class classification
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # 4. Training loop
-num_epochs = 1000
 for epoch in range(num_epochs):
+    model.train()
     total_loss = 0.0
     for batch_X, batch_y in train_loader:
         optimizer.zero_grad()
-        outputs = model(batch_X)
-        loss = criterion(outputs, batch_y)
+        loss = criterion(model(batch_X), batch_y)
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
-    
-    avg_loss = total_loss / len(train_loader)
+
+    model.eval()
+    val_loss = 0.0
+    with torch.no_grad():
+        for batch_X, batch_y in val_loader:
+            val_loss += criterion(model(batch_X), batch_y).item()
+    val_loss /= len(val_loader)
+
     if epoch % 25 == 0:
-        print(f"Epoch {epoch}, Avg Loss: {avg_loss:.4f}")
+        print(f"Epoch {epoch}, Train loss: {total_loss/len(train_loader):.4f}, Val loss: {val_loss:.4f}")
 
-    if avg_loss < 0.6: 
-        print("Early stopping as loss is below threshold.")
-        break
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        no_improve_epochs = 0
+        best_state = copy.deepcopy(model.state_dict())
+    else:
+        no_improve_epochs += 1
+        if no_improve_epochs >= patience:
+            print(f"Early stopping at epoch {epoch}")
+            break
 
-# Add this before evaluation
+if best_state is not None:
+    model.load_state_dict(best_state)
+
+# Pre-model evaluation
 model.eval()
 train_correct, train_total = 0, 0
 with torch.no_grad():

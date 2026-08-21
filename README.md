@@ -122,7 +122,7 @@ python cli/main.py
 - **Test Accuracy**: ~73-77%
 - **Confidence**: 50-90% (varies by stock)
 
-> This is purely an estimate and average of my findings after the model has been trained. 
+> This is purely an estimate and average of my findings after the model has been trained. And the model will keep improving in training 
 
 ---
 
