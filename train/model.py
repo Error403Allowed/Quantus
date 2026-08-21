@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
 import copy
+from train.dataset import horizon
 
 from train.dataset import prepare_dataset
 from pipeline.data_fetcher import fetch_price_data
@@ -34,16 +35,15 @@ y = processed["Target"]
 
 # Convert to numpy and -1,0,1 -> 0,1,2 for PyTorch
 X_np = X.values.astype(np.float32)
-y_np = (y + 1).astype(np.int64) 
+y_np = (y + 1).astype(np.int64)
 
 # Train/test/val split
-X_temp, X_test, y_temp, y_test = train_test_split(
-    X_np, y_np, test_size=0.2, random_state=42, stratify=y_np
-)
+n = len(X_np)
+i_train, i_val = int(n * 0.6), int(n * 0.8)
 
-X_train, X_val, y_train, y_val = train_test_split(
-    X_temp, y_temp, test_size=0.25, random_state=42, stratify=y_temp
-)
+X_train, y_train = X_np[: i_train - horizon], y_np[: i_train - horizon]
+X_val,   y_val   = X_np[i_train : i_val - horizon], y_np[i_train : i_val - horizon]
+X_test,  y_test  = X_np[i_val :], y_np[i_val :]
 
 # Convert to tensors directly from NumPy arrays
 X_train_t = torch.from_numpy(X_train).float()
