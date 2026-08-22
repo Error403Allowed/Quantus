@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from pipeline.data_fetcher import fetch_price_data
+from pipeline.price_fetcher import fetch_price_data
 from pipeline.indicators import compute_indicators, get_latest_data
 from train.model import StockClassifier
 import torch
@@ -119,7 +119,7 @@ def predict_stock(
     indicators = compute_indicators(price_data)
     features = get_latest_data(indicators)
 
-    model = StockClassifier()
+    model = StockClassifier(input_dim=len(features))
     model.load_state_dict(torch.load(model_path, weights_only=True, map_location='cpu'))
     model.eval()
 
@@ -142,7 +142,7 @@ def predict_stock(
     print()
     print(c(BOLD + f'🎯 {action} {emoji}', color) + BOLD)
     print(c(f'   Neural Network Confidence: {conf*100:.1f}%', WHITE))
-    print(c(f'   Model: MLP (11->64->32->3)', CYAN))
+    print(c(f'   Model: MLP (11->32->16->3)', CYAN))
 
     if groq_api_key and GROQ_AVAILABLE:
         print(c('\nQuantus AI Analysis...', CYAN))

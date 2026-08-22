@@ -20,16 +20,21 @@ def compute_indicators(data: pd.DataFrame) -> pd.DataFrame:
     # Compute Indicators
     data["RSI"] = RSIIndicator(close=close, window=14).rsi()
     data["MACD"] = MACD(close=close, window_slow=26, window_fast=12, window_sign=9).macd()
-    data["EMA_20"] = EMAIndicator(close=close, window=20).ema_indicator()
-    data["EMA_50"] = EMAIndicator(close=close, window=50).ema_indicator()
-    data["EMA_200"] = EMAIndicator(close=close, window=200).ema_indicator()
-    data["Price_Change"] = close.pct_change()
-    data["Vol_Change"] = volume.pct_change()
-    data["Volatility"] = close.rolling(window=20).std()
-    data["MA_20"] = close.rolling(window=20).mean()
-    data["MA_50"] = close.rolling(window=50).mean()
-    data["MA_200"] = close.rolling(window=200).mean()
-    
+    data["Return_5d"] = close.pct_change(5)
+    data["High_20d_dist"] = (close - close.rolling(20).max()) / close.rolling(20).max()
+    data["Vol_ratio"] = volume / volume.rolling(20).mean()
+    data["Volatility"] = close.rolling(window=20).std() / close  # normalize by price
+
+    ema20 = EMAIndicator(close=close, window=20).ema_indicator()
+    ema50 = EMAIndicator(close=close, window=50).ema_indicator()
+    ema200 = EMAIndicator(close=close, window=200).ema_indicator()
+
+    data["Price_to_EMA20"]  = close / ema20 - 1
+    data["Price_to_EMA50"]  = close / ema50 - 1
+    data["Price_to_EMA200"] = close / ema200 - 1
+    data["EMA20_to_EMA50"]  = ema20 / ema50 - 1
+    data["EMA50_to_EMA200"] = ema50 / ema200 - 1
+
     data.dropna(inplace=True)
 
     if data.empty: 

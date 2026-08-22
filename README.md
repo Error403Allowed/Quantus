@@ -44,7 +44,7 @@ Groq explanations are **optional**. The CLI works without it, just no AI analysi
 
 ## 📊 Features
 
-- **Neural Network**: MLP (11->64->32->3) for 3-class classification (BUY/HOLD/SELL)
+- **Neural Network**: MLP (11->32->16->3) for 3-class classification (BUY/HOLD/SELL)
 - **Technical Indicators**: RSI, MACD, EMA (20/50/200), volatility, momentum
 - **Groq AI**: 3 reasons + 3 risks explanation (neutral analysis) [optional]
 - **Interactive CLI**: Type multiple tickers without restarting
@@ -75,7 +75,7 @@ Quantus/
 ## 🧮 Model Architecture
 
 ```
-Input (11 features) -> Hidden1 (64) -> Hidden2 (32) -> Output (3)
+Input (11 features) -> Hidden1 (32) -> Hidden2 (16) -> Output (3)
                     ↓           ↓
                   Dropout       Dropout
 ```
@@ -158,7 +158,7 @@ $ python cli/main.py
 
   🎯 BUY 📈
      Neural Network Confidence: 88.7%
-     Model: MLP (11->64->32->3)
+     Model: MLP (11->32->16->3)
 
   ✅ AAPL -> BUY 📈
 
