@@ -17,7 +17,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from pipeline.price_fetcher import fetch_price_data
 from pipeline.indicators import compute_indicators, get_latest_data
-from train.model import StockClassifier
+from models.alpha.model import StockClassifier
 import torch
 import pandas as pd
 

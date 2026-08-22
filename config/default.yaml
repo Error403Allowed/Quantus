@@ -1,23 +1,49 @@
 data:
-  period: "6mo"
+  tickers:
+    - AAPL
+    - MSFT
+    - GOOGL
+    - AMZN
+    - META
+    - NVDA
+    - JPM
+    - JNJ
+    - XOM
+    - PG
+  period: "5y"
   interval: "1d"
-  min_rows: 30
 
-news_provider: "finnhub"
-sentiment_model: "finbert"
+features:
+  lookback: 10
+  horizon: 5
+  drop_columns:
+    - Open
+    - High
+    - Low
+    - Close
+    - Volume
+    - Future_Return
+    - Target
 
-model:
-  path: "models/predictor.pt"
-  scaler_path: "models/scaler.pkl"
-  input_dim: 10
-  use_rag: false
+split:
+  train_ratio: 0.6
+  val_ratio: 0.2
 
-llm:
-  provider: "groq"
-  model: "gpt-oss-20b"
-  enabled: false
+alpha:
+  hidden1: 64
+  hidden2: 32
+  dropout: 0.3
+  output_dim: 3
 
-thresholds:
-  buy_label_return: 0.02
-  sell_label_return: -0.02
-  forward_days: 5
+training:
+  batch_size: 32
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  epochs: 1000
+  patience: 50
+
+paths:
+  alpha_dir: "models/alpha/weights"
+  model_path: "models/alpha/weights/stock_classifier.pt"
+  scaler_path: "models/alpha/weights/scaler.pkl"
+  temperature_path: "models/alpha/weights/temperature.pt"

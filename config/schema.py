@@ -1,44 +1,74 @@
-from pydantic import BaseModel
-import yaml
-import os
+from dataclasses import dataclass
+from pathlib import Path
+from typing import List
 
-class DataConfig(BaseModel):
+import yaml
+
+
+@dataclass
+class DataConfig:
+    tickers: List[str]
     period: str
     interval: str
-    min_rows: int
 
-class ModelConfig(BaseModel):
-    path: str
+
+@dataclass
+class FeaturesConfig:
+    lookback: int
+    horizon: int
+    drop_columns: List[str]
+
+
+@dataclass
+class SplitConfig:
+    train_ratio: float
+    val_ratio: float
+
+
+@dataclass
+class AlphaConfig:
+    hidden1: int
+    hidden2: int
+    dropout: float
+    output_dim: int
+
+
+@dataclass
+class TrainingConfig:
+    batch_size: int
+    learning_rate: float
+    weight_decay: float
+    epochs: int
+    patience: int
+
+
+@dataclass
+class PathsConfig:
+    alpha_dir: str
+    model_path: str
     scaler_path: str
-    input_dim: int
-    use_rag: bool
+    temperature_path: str
 
-class LLMConfig(BaseModel):
-    provider: str
-    model: str
-    enabled: bool
 
-class ThresholdConfig(BaseModel):
-    buy_label_return: float
-    sell_label_return: float
-    forward_days: int
-
-class AppConfig(BaseModel):
+@dataclass
+class QuantusConfig:
     data: DataConfig
-    news_provider: str
-    sentiment_model: str
-    model: ModelConfig
-    llm: LLMConfig
-    thresholds: ThresholdConfig
-    finnhub_api_key: str 
-    groq_api_key: str
+    features: FeaturesConfig
+    split: SplitConfig
+    alpha: AlphaConfig
+    training: TrainingConfig
+    paths: PathsConfig
 
 
-def load_config(path="config/default.yaml") -> AppConfig:
-    with open(path) as f:
-        data = yaml.safe_load(f)
-    local = "config/local.yaml"
-    if os.path.exists(local):
-        with open(local) as f:
-            data.update(yaml.safe_load(f) or {})
-    return AppConfig(**data)
+def load_config(path: str = "config/default.yaml") -> QuantusConfig:
+    with open(path, "r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+
+    return QuantusConfig(
+        data=DataConfig(**raw["data"]),
+        features=FeaturesConfig(**raw["features"]),
+        split=SplitConfig(**raw["split"]),
+        alpha=AlphaConfig(**raw["alpha"]),
+        training=TrainingConfig(**raw["training"]),
+        paths=PathsConfig(**raw["paths"]),
+    )
