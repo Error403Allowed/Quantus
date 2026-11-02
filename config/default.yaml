@@ -16,34 +16,37 @@ data:
 features:
   lookback: 10
   horizon: 5
-  drop_columns:
-    - Open
-    - High
-    - Low
-    - Close
-    - Volume
-    - Future_Return
-    - Target
+  label_k: 0.5
+  columns:
+    - Return_1
+    - Return_5
+    - Return_10
+    - Price_vs_SMA10
+    - Price_vs_SMA20
+    - Volatility_10
+    - Volume_Z
+    - RSI_14
 
 split:
   train_ratio: 0.6
   val_ratio: 0.2
 
 alpha:
-  hidden1: 64
-  hidden2: 32
-  dropout: 0.3
+  hidden1: 32
+  hidden2: 16
+  dropout: 0.4
   output_dim: 3
 
 training:
   batch_size: 32
   learning_rate: 0.001
-  weight_decay: 0.0001
+  weight_decay: 0.001
   epochs: 1000
-  patience: 50
+  patience: 10
 
 paths:
   alpha_dir: "models/alpha/weights"
   model_path: "models/alpha/weights/stock_classifier.pt"
   scaler_path: "models/alpha/weights/scaler.pkl"
   temperature_path: "models/alpha/weights/temperature.pt"
+  metadata_path: "models/alpha/weights/metadata.json"

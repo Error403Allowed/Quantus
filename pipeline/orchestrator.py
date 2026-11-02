@@ -19,12 +19,8 @@ class QuantusOrchestrator:
         self.config = config
         self.alpha_service = AlphaInferenceService(config)
 
-    def decide_from_alpha_only(
-        self,
-        df: pd.DataFrame,
-        feature_columns,
-    ) -> OrchestratorDecision:
-        alpha_pred = self.alpha_service.predict(df, feature_columns)
+    def decide_from_alpha_only(self, df: pd.DataFrame) -> OrchestratorDecision:
+        alpha_pred = self.alpha_service.predict(df)
 
         class_to_action = {
             0: "short",
@@ -46,3 +42,4 @@ class QuantusOrchestrator:
                 }
             },
         )
+    

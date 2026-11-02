@@ -16,7 +16,8 @@ class DataConfig:
 class FeaturesConfig:
     lookback: int
     horizon: int
-    drop_columns: List[str]
+    columns: List[str]
+    label_k: float
 
 
 @dataclass
@@ -48,6 +49,7 @@ class PathsConfig:
     model_path: str
     scaler_path: str
     temperature_path: str
+    metadata_path: str
 
 
 @dataclass

@@ -1,89 +1,88 @@
-from pathlib import Path
 import copy
+from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from sklearn.metrics import confusion_matrix, f1_score
 
 from config.schema import load_config
 from models.alpha.calibration import fit_temperature, save_temperature
 from models.alpha.dataset import (
-    build_alpha_bundle_from_dataframe,
-    merge_alpha_bundles,
+    build_alpha_bundle,
+    save_metadata,
     save_scaler,
     to_tensor_dataloader,
 )
 from models.alpha.model import StockClassifier
+from pipeline.features import add_labels, build_features
 from pipeline.price_fetcher import fetch_price_data
-from models.alpha.dataset import prepare_dataset
 
 
-def evaluate_accuracy(model: nn.Module, loader) -> float:
+def collect_predictions(model: nn.Module, loader):
     model.eval()
-    correct, total = 0, 0
-
+    ys, ps = [], []
     with torch.no_grad():
         for batch_X, batch_y in loader:
-            logits = model(batch_X)
-            preds = torch.argmax(logits, dim=1)
-            correct += (preds == batch_y).sum().item()
-            total += batch_y.size(0)
+            ps.append(torch.argmax(model(batch_X), dim=1))
+            ys.append(batch_y)
+    return torch.cat(ys).numpy(), torch.cat(ps).numpy()
 
-    return 100.0 * correct / total if total > 0 else 0.0
+
+def report(name: str, model: nn.Module, loader) -> None:
+    y_true, y_pred = collect_predictions(model, loader)
+    acc = 100.0 * (y_true == y_pred).mean()
+    # accuracy you'd get by always guessing the most common class in this split
+    baseline = 100.0 * np.bincount(y_true, minlength=3).max() / len(y_true)
+    macro_f1 = f1_score(y_true, y_pred, average="macro")
+    print(f"{name}: acc {acc:.2f}% | majority baseline {baseline:.2f}% | macro-F1 {macro_f1:.3f}")
+    print(confusion_matrix(y_true, y_pred, labels=[0, 1, 2]))
 
 
 def collect_val_logits_and_labels(model: nn.Module, val_loader):
     model.eval()
     logits_list, labels_list = [], []
-
     with torch.no_grad():
         for batch_X, batch_y in val_loader:
             logits_list.append(model(batch_X))
             labels_list.append(batch_y)
-
     return torch.cat(logits_list), torch.cat(labels_list)
 
 
 def train_alpha():
+    torch.manual_seed(0)
     config = load_config()
     Path(config.paths.alpha_dir).mkdir(parents=True, exist_ok=True)
 
-    bundles = []
+    frames = []
     for ticker in config.data.tickers:
         raw_df = fetch_price_data(
             ticker,
             period=config.data.period,
             interval=config.data.interval,
         )
-        prepared_df = prepare_dataset(raw_df)
-        bundle = build_alpha_bundle_from_dataframe(prepared_df, config)
-        bundles.append(bundle)
+        feats = build_features(raw_df)
+        frames.append(
+            add_labels(feats, config.features.horizon, config.features.label_k)
+        )
 
-    merged = merge_alpha_bundles(bundles)
-
+    merged = build_alpha_bundle(frames, config)
     save_scaler(merged.scaler, config.paths.scaler_path)
 
     train_loader = to_tensor_dataloader(
-        merged.X_train,
-        merged.y_train,
-        batch_size=config.training.batch_size,
-        shuffle=True,
+        merged.X_train, merged.y_train, config.training.batch_size, shuffle=True
     )
     val_loader = to_tensor_dataloader(
-        merged.X_val,
-        merged.y_val,
-        batch_size=config.training.batch_size,
-        shuffle=False,
+        merged.X_val, merged.y_val, config.training.batch_size, shuffle=False
     )
     test_loader = to_tensor_dataloader(
-        merged.X_test,
-        merged.y_test,
-        batch_size=config.training.batch_size,
-        shuffle=False,
+        merged.X_test, merged.y_test, config.training.batch_size, shuffle=False
     )
 
+    input_dim = merged.X_train.shape[2]  # number of features per time step
     model = StockClassifier(
-        input_dim=merged.X_train.shape[1],
+        input_dim=input_dim,
         hidden1=config.alpha.hidden1,
         hidden2=config.alpha.hidden2,
         output_dim=config.alpha.output_dim,
@@ -104,31 +103,30 @@ def train_alpha():
     for epoch in range(config.training.epochs):
         model.train()
         total_train_loss = 0.0
-
         for batch_X, batch_y in train_loader:
             optimiser.zero_grad()
-            logits = model(batch_X)
-            loss = criterion(logits, batch_y)
+            loss = criterion(model(batch_X), batch_y)
             loss.backward()
             optimiser.step()
             total_train_loss += loss.item()
 
         model.eval()
         total_val_loss = 0.0
-
         with torch.no_grad():
             for batch_X, batch_y in val_loader:
-                logits = model(batch_X)
-                total_val_loss += criterion(logits, batch_y).item()
+                total_val_loss += criterion(model(batch_X), batch_y).item()
+
+        y_true, y_pred = collect_predictions(model, val_loader)
+        val_f1 = f1_score(y_true, y_pred, average="macro")
 
         avg_train_loss = total_train_loss / len(train_loader)
         avg_val_loss = total_val_loss / len(val_loader)
 
-        if epoch % 25 == 0:
+        # every 5 epochs, since patience is now short and training stops early
+        if epoch % 5 == 0:
             print(
-                f"Epoch {epoch} | "
-                f"Train Loss: {avg_train_loss:.4f} | "
-                f"Val Loss: {avg_val_loss:.4f}"
+                f"Epoch {epoch} | Train Loss: {avg_train_loss:.4f} | "
+                f"Val Loss: {avg_val_loss:.4f} | Val F1: {val_f1:.4f}"
             )
 
         if avg_val_loss < best_val_loss:
@@ -144,19 +142,24 @@ def train_alpha():
     if best_state is not None:
         model.load_state_dict(best_state)
 
-    train_acc = evaluate_accuracy(model, train_loader)
-    test_acc = evaluate_accuracy(model, test_loader)
-
-    print(f"Train Accuracy: {train_acc:.2f}%")
-    print(f"Test Accuracy: {test_acc:.2f}%")
+    report("Train", model, train_loader)
+    report("Val", model, val_loader)
+    report("Test", model, test_loader)
 
     torch.save(model.state_dict(), config.paths.model_path)
+    save_metadata(
+        config.paths.metadata_path,
+        feature_columns=merged.feature_columns,
+        lookback=config.features.lookback,
+        horizon=config.features.horizon,
+        label_k=config.features.label_k,
+        input_dim=input_dim,
+    )
     print(f"Saved alpha model to {config.paths.model_path}")
 
     val_logits, val_labels = collect_val_logits_and_labels(model, val_loader)
     temperature = fit_temperature(val_logits, val_labels)
     save_temperature(temperature, config.paths.temperature_path)
-
     print(f"Saved temperature {temperature:.4f} to {config.paths.temperature_path}")
 
 

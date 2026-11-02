@@ -44,7 +44,7 @@ Groq explanations are **optional**. The CLI works without it, just no AI analysi
 
 ## 📊 Features
 
-- **Neural Network**: MLP (11->32->16->3) for 3-class classification (BUY/HOLD/SELL)
+- **Neural Network**: GRU (11->32->16->3) for 3-class classification (BUY/HOLD/SELL)
 - **Technical Indicators**: RSI, MACD, EMA (20/50/200), volatility, momentum
 - **Groq AI**: 3 reasons + 3 risks explanation (neutral analysis) [optional]
 - **Interactive CLI**: Type multiple tickers without restarting
@@ -61,7 +61,7 @@ Quantus/
 │   ├── data_fetcher.py      # yfinance data fetching
 │   ├── indicators.py        # Technical indicator computation
 ├── train/
-│   ├── model.py             # MLP training + evaluation
+│   ├── model.py             # GRU training + evaluation
 │   └── dataset.py           # Dataset preparation
 ├── models/
 │   └── stock_classifier.pt  # Trained model (after training)
@@ -140,7 +140,7 @@ Get concise explanations with **3 reasons** + **3 risks**:
 ```bash
 $ python cli/main.py
 
-  Quantus | MLP | Groq: disabled
+  Quantus | GRU | Groq: disabled
 
   Enter ticker: AAPL
   🚀 AAPL | 5y | 1d
@@ -148,7 +148,7 @@ $ python cli/main.py
 
   🎯 BUY 📈
      Neural Network Confidence: 88.7%
-     Model: MLP (11->32->16->3)
+     Model: GRU (11->32->16->3)
 
   ✅ AAPL -> BUY 📈
 
