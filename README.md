@@ -116,16 +116,6 @@ python cli/main.py
 
 ---
 
-## 🎯 Performance
-
-- **Train Accuracy**: ~79-83%
-- **Test Accuracy**: ~73-77%
-- **Confidence**: 50-90% (varies by stock)
-
-> This is purely an estimate and average of my findings after the model has been trained. And the model will keep improving in training 
-
----
-
 ## 🧠 Groq AI Integration
 
 Get concise explanations with **3 reasons** + **3 risks**:
