@@ -41,5 +41,6 @@ chroma_db/
 logs/
 .venv/
 
-# Tests
-tests/
+# Weights
+models/alpha/weights/
+models/alpha/weights/
