@@ -27,6 +27,12 @@ features:
     - Volume_Z
     - RSI_14
 
+regime:
+  ticker: "SPY"
+  n_components: 3
+  period: "10y"
+  infer_period: "2y"
+
 split:
   train_ratio: 0.6
   val_ratio: 0.2
@@ -50,3 +56,4 @@ paths:
   scaler_path: "models/alpha/weights/scaler.pkl"
   temperature_path: "models/alpha/weights/temperature.pt"
   metadata_path: "models/alpha/weights/metadata.json"
+  regime_path: "models/alpha/weights/regime_model.pkl"

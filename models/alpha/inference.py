@@ -8,6 +8,7 @@ from config.schema import QuantusConfig
 from models.alpha.calibration import apply_temperature, load_temperature
 from models.alpha.dataset import load_metadata, load_scaler, make_inference_window
 from models.alpha.model import StockClassifier
+from pipeline.regime import build_regime_features, load_regime, regime_probs
 
 
 @dataclass
@@ -24,6 +25,7 @@ class AlphaInferenceService:
         self.config = config
         self.scaler = load_scaler(config.paths.scaler_path)
         self.temperature = load_temperature(config.paths.temperature_path)
+        self.regime_scaler, self.regime_gmm = load_regime(config.paths.regime_path)
 
         meta = load_metadata(config.paths.metadata_path)
         self.feature_columns: List[str] = meta["feature_columns"]
@@ -40,7 +42,13 @@ class AlphaInferenceService:
         self.model.load_state_dict(state_dict)
         self.model.eval()
 
-    def predict(self, df: pd.DataFrame) -> AlphaPrediction:
+    def predict(self, df: pd.DataFrame, market_df: pd.DataFrame) -> AlphaPrediction:
+        # same regime features the model was trained with, from the saved scaler + GMM
+        probs = regime_probs(
+            build_regime_features(market_df), self.regime_scaler, self.regime_gmm
+        )
+        df = df.join(probs, how="inner")
+
         window = make_inference_window(df, self.feature_columns, self.lookback, self.scaler)
         x = torch.from_numpy(window).float()
 

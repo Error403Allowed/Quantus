@@ -50,6 +50,14 @@ class PathsConfig:
     scaler_path: str
     temperature_path: str
     metadata_path: str
+    regime_path: str
+
+@dataclass
+class RegimeConfig:
+    ticker: str
+    n_components: int
+    period: str
+    infer_period: str
 
 
 @dataclass
@@ -60,6 +68,7 @@ class QuantusConfig:
     alpha: AlphaConfig
     training: TrainingConfig
     paths: PathsConfig
+    regime: RegimeConfig
 
 
 def load_config(path: str = "config/default.yaml") -> QuantusConfig:
@@ -73,4 +82,5 @@ def load_config(path: str = "config/default.yaml") -> QuantusConfig:
         alpha=AlphaConfig(**raw["alpha"]),
         training=TrainingConfig(**raw["training"]),
         paths=PathsConfig(**raw["paths"]),
+        regime=RegimeConfig(**raw["regime"])
     )

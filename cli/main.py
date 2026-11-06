@@ -74,8 +74,11 @@ def predict_stock(
     price_data = fetch_price_data(ticker, period, interval)
     print(c(f'✅ {len(price_data)} OHLCV rows', GREEN))
 
+    market = fetch_price_data(
+        orchestrator.config.regime.ticker, orchestrator.config.regime.infer_period, "1d"
+    )
     features = build_features(price_data)
-    decision = orchestrator.decide_from_alpha_only(features)
+    decision = orchestrator.decide_from_alpha_only(features, market)
 
     action, emoji, color = ACTIONS[decision.action]
     conf = decision.confidence
@@ -91,7 +94,8 @@ def predict_stock(
         try:
             client = Groq(api_key=groq_api_key)
             # unscaled values, so the LLM sees readable numbers
-            latest = features[orchestrator.alpha_service.feature_columns].iloc[-1]
+            cols = [c for c in orchestrator.alpha_service.feature_columns if c in features.columns]
+            latest = features[cols].iloc[-1]            
             features_str = '\n'.join(f'  {n}: {v:.4f}' for n, v in latest.items())
             prompt = (
                 f"Ticker: {ticker}\n"

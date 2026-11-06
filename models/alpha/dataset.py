@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 import joblib
 import numpy as np
@@ -11,39 +11,56 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from config.schema import QuantusConfig
 
-
 @dataclass
 class AlphaDataBundle:
     X_train: np.ndarray
     y_train: np.ndarray
+    r_train: np.ndarray
+    d_train: np.ndarray
     X_val: np.ndarray
     y_val: np.ndarray
+    r_val: np.ndarray
+    d_val: np.ndarray
     X_test: np.ndarray
     y_test: np.ndarray
+    r_test: np.ndarray
+    d_test: np.ndarray
     feature_columns: List[str]
     scaler: StandardScaler
+    feature_columns: List[str]
+    scaler: StandardScaler
+    regime_scaler: Any = None
+    regime_gmm: Any = None
 
 
 def make_windows(
     df: pd.DataFrame,
     feature_cols: List[str],
     lookback: int,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     feats = df[feature_cols].to_numpy(dtype=np.float32)
     labels = df["Target"].to_numpy(dtype=np.int64) + 1  # -1/0/1 -> 0/1/2
+    rets = df["Future_Return"].to_numpy(dtype=np.float64)
+    dates = df.index.to_numpy()
 
-    X, y = [], []
+    X, y, r, d = [], [], [], []
     # window ends AT row i (inclusive), same as tail(lookback) at inference
     for i in range(lookback - 1, len(df)):
         X.append(feats[i - lookback + 1 : i + 1])  # keep (lookback, n_features)
         y.append(labels[i])
+        r.append(rets[i])
+        d.append(dates[i])
 
-    # np.stack builds (N, lookback, n_features); the empty case keeps the 3D shape
     if X:
         X_arr = np.stack(X).astype(np.float32)
     else:
         X_arr = np.empty((0, lookback, len(feature_cols)), dtype=np.float32)
-    return X_arr, np.array(y, dtype=np.int64)
+    return (
+        X_arr,
+        np.array(y, dtype=np.int64),
+        np.array(r, dtype=np.float64),
+        np.array(d, dtype="datetime64[ns]"),
+    )
 
 
 def split_by_time(
@@ -88,21 +105,31 @@ def build_alpha_bundle(
     # 3) scale each piece, window it per ticker, then stack
     X = {"train": [], "val": [], "test": []}
     y = {"train": [], "val": [], "test": []}
+    r = {"train": [], "val": [], "test": []}
+    d = {"train": [], "val": [], "test": []}
     for parts in splits:
         for name, part in zip(("train", "val", "test"), parts):
             part = part.copy()
             part[cols] = scaler.transform(part[cols])
-            xi, yi = make_windows(part, cols, lookback)
+            xi, yi, ri, di = make_windows(part, cols, lookback)
             X[name].append(xi)
             y[name].append(yi)
+            r[name].append(ri)
+            d[name].append(di)
 
     return AlphaDataBundle(
         X_train=np.concatenate(X["train"]),
         y_train=np.concatenate(y["train"]),
+        r_train=np.concatenate(r["train"]),
+        d_train=np.concatenate(d["train"]),
         X_val=np.concatenate(X["val"]),
         y_val=np.concatenate(y["val"]),
+        r_val=np.concatenate(r["val"]),
+        d_val=np.concatenate(d["val"]),
         X_test=np.concatenate(X["test"]),
         y_test=np.concatenate(y["test"]),
+        r_test=np.concatenate(r["test"]),
+        d_test=np.concatenate(d["test"]),
         feature_columns=cols,
         scaler=scaler,
     )

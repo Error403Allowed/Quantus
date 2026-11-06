@@ -34,7 +34,7 @@ def test_no_lookahead():
 # the training window and the serving window for the same date must be identical
 def test_train_serve_parity():
     cfg = load_config()
-    cols = cfg.features.columns
+    cols = [c for c in cfg.features.columns if not c.startswith("Regime_")]    
     lookback = cfg.features.lookback
 
     feats = build_features(fake_prices())
@@ -43,7 +43,7 @@ def test_train_serve_parity():
 
     scaled = labeled.copy()
     scaled[cols] = scaler.transform(scaled[cols])
-    X, _ = make_windows(scaled, cols, lookback)
+    X, _, _, _ = make_windows(scaled, cols, lookback)    
     train_side = X[-1]
 
     cutoff = labeled.index[-1]
